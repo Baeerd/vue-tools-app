@@ -50,6 +50,28 @@ export const constantRoutes = [
   },
 
   {
+    path: '/generator',
+    component: Layout,
+    redirect: '/generator/table',
+    name: 'CodeGenerator',
+    meta: { title: '代码生成', icon: 'example' },
+    children: [
+      {
+        path: 'config',
+        name: 'Config',
+        component: () => import('@/views/generator/config/index'),
+        meta: { title: '生成代码配置', icon: 'table' }
+      },
+      {
+        path: 'code',
+        name: 'Code',
+        component: () => import('@/views/generator/code/index'),
+        meta: { title: '代码生成', icon: 'tree' }
+      }
+    ]
+  },
+
+  {
     path: '/example',
     component: Layout,
     redirect: '/example/table',
