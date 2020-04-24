@@ -19,6 +19,8 @@
       highlight-current-row
       style="width: 100%;"
       @sort-change="sortChange"
+      row-style="height:35px"
+      cell-style="padding:0"
     >
       <el-table-column label="序号" prop="id" sortable="custom" align="center" width="80" :class-name="getSortClass('id')">
         <template slot-scope="scope">
