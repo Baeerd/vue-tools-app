@@ -1,28 +1,27 @@
 <template>
   <div class="app-container">
     <div class="filter-container">
-      <el-input v-model="listQuery.title" placeholder="搜索表名..." style="width: 200px;" class="filter-item" @keyup.enter.native="handleFilter" />
+      <el-input v-model="listQuery.tableName" placeholder="搜索表名..." style="width: 200px;" class="filter-item" @keyup.enter.native="handleFilter" />
       <el-button class="filter-item" type="primary" icon="el-icon-search" @click="handleFilter">
         搜索
       </el-button>
-      <el-button class="filter-item" type="success" icon="el-icon-edit" @click="handleFilter">
+      <el-button class="filter-item" type="success" icon="el-icon-edit" @click="generatorCode()">
         生成代码
       </el-button>
     </div>
 
     <el-table
-      :key="tableKey"
       v-loading="listLoading"
       :data="list"
       border
       fit
       highlight-current-row
       style="width: 100%;"
-      @sort-change="sortChange"
-      row-style="height:35px"
-      cell-style="padding:0"
+      :cell-style="cellStyle"
+      ref="singleTable"
+      @row-click="onRowClick"
     >
-      <el-table-column label="序号" prop="id" sortable="custom" align="center" width="80" :class-name="getSortClass('id')">
+      <el-table-column label="序号" prop="id" align="center" width="80" >
         <template slot-scope="scope">
           <span> {{ scope.$index +1 }}</span>
         </template>
@@ -60,46 +59,15 @@
         components: { Pagination },
         data() {
             return {
-                tableKey: 0,
                 list: null,
-                total: 50,
+                total: 0,
                 listLoading: true,
+                selectedTableName : '',
                 listQuery: {
                     page: 1,
-                    limit: 20,
-                    importance: undefined,
-                    title: '',
-                    type: undefined,
-                    sort: '+id'
-                },
-                importanceOptions: [1, 2, 3],
-                // calendarTypeOptions,
-                sortOptions: [{ label: 'ID Ascending', key: '+id' }, { label: 'ID Descending', key: '-id' }],
-                statusOptions: ['published', 'draft', 'deleted'],
-                showReviewer: false,
-                temp: {
-                    id: undefined,
-                    importance: 1,
-                    remark: '',
-                    timestamp: new Date(),
-                    title: '',
-                    type: '',
-                    status: 'published'
-                },
-                dialogFormVisible: false,
-                dialogStatus: '',
-                textMap: {
-                    update: 'Edit',
-                    create: 'Create'
-                },
-                dialogPvVisible: false,
-                pvData: [],
-                rules: {
-                    type: [{ required: true, message: 'type is required', trigger: 'change' }],
-                    timestamp: [{ type: 'date', required: true, message: 'timestamp is required', trigger: 'change' }],
-                    title: [{ required: true, message: 'title is required', trigger: 'blur' }]
-                },
-                downloadLoading: false
+                    limit: 15,
+                    tableName: ''
+                }
             }
         },
         created() {
@@ -108,75 +76,52 @@
         methods: {
             getList() {
                 this.listLoading = true;
-                this.$store.dispatch('generator/getTables').then((data) => {
-                    this.list = data.data;
+                let params = {
+                    'pageNum' : this.listQuery.page,
+                    'pageSize' : this.listQuery.limit,
+                    'tableName' : this.listQuery.tableName
+                };
+                this.$store.dispatch('generator/getTables', params).then((data) => {
+                    this.list = data.data.list;
+                    this.total = data.data.total;
                     this.listLoading = false;
                 }).catch(() => {
                     this.listLoading = true
                 })
             },
+            cellStyle(row, index) {
+              return 'height: 35px;padding: 0;';
+            },
             handleFilter() {
-                this.listQuery.page = 1
+                this.listQuery.page = 1;
                 this.getList()
             },
-            handleModifyStatus(row, status) {
-                this.$message({
-                    message: '操作成功',
-                    type: 'success'
-                })
-                row.status = status
-            },
-            sortChange(data) {
-                const { prop, order } = data
-                if (prop === 'id') {
-                    this.sortByID(order)
-                }
-            },
-            sortByID(order) {
-                if (order === 'ascending') {
-                    this.listQuery.sort = '+id'
-                } else {
-                    this.listQuery.sort = '-id'
-                }
-                this.handleFilter()
-            },
-            resetTemp() {
-                this.temp = {
-                    id: undefined,
-                    importance: 1,
-                    remark: '',
-                    timestamp: new Date(),
-                    title: '',
-                    status: 'published',
-                    type: ''
-                }
-            },
-            handleDelete(row) {
-                this.$notify({
-                    title: '成功',
-                    message: '删除成功',
-                    type: 'success',
-                    duration: 2000
-                })
-                const index = this.list.indexOf(row)
-                this.list.splice(index, 1)
-            },
-            formatJson(filterVal, jsonData) {
-                return jsonData.map(v => filterVal.map(j => {
-                    if (j === 'timestamp') {
-                        return parseTime(v[j])
-                    } else {
-                        return v[j]
+            generatorCode() {
+                this.listLoading = true;
+                let fileName = this.selectedTableName;
+                this.$store.dispatch('generator/generatorCode', this.selectedTableName).then((res) => {
+                    const content = res
+                    const blob = new Blob([content],{type:"application/zip"})
+                    fileName = fileName+'.zip'
+                    if ('download' in document.createElement('a')) { // 非IE下载
+                        const elink = document.createElement('a')
+                        elink.download = fileName
+                        elink.style.display = 'none'
+                        elink.href = window.URL.createObjectURL(blob)
+                        document.body.appendChild(elink)
+                        elink.click()
+                        window.URL.revokeObjectURL(elink.href) // 释放URL 对象
+                        document.body.removeChild(elink)
+                    } else { // IE10+下载
+                        navigator.msSaveBlob(blob, fileName)
                     }
-                }))
+                    this.listLoading = false;
+                }).catch(() => {
+                    this.listLoading = true
+                })
             },
-            getSortClass: function(key) {
-                const sort = this.listQuery.sort
-                return sort === `+${key}`
-                    ? 'ascending'
-                    : sort === `-${key}`
-                        ? 'descending'
-                        : ''
+            onRowClick(row, event, column) {
+                this.selectedTableName = row.tableName;
             }
         }
     }

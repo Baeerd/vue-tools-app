@@ -7,7 +7,7 @@
       :layout="layout"
       :page-sizes="pageSizes"
       :total="total"
-      v-bind="$attrs"
+      v-bind="{'total':'啊啊啊'}"
       @size-change="handleSizeChange"
       @current-change="handleCurrentChange"
     />
@@ -35,7 +35,7 @@ export default {
     pageSizes: {
       type: Array,
       default() {
-        return [10, 20, 30, 50]
+        return [15, 25, 30, 50]
       }
     },
     layout: {

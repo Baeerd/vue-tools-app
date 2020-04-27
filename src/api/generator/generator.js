@@ -19,7 +19,17 @@ export function downLoadTemplate(data) {
 export function getTables(data) {
   return request({
     url: '/generator/getTables',
-    method: 'get',
+    method: 'post',
+    data
+  })
+}
+
+export function generatorCode(data) {
+  console.log(data);
+  return request({
+    url: '/generator/generatorCode',
+    method: 'post',
+    responseType: 'blob',
     data
   })
 }
