@@ -33,3 +33,27 @@ export function generatorCode(data) {
     data
   })
 }
+
+export function getTableDetail(data) {
+  return request({
+    url: '/generator/getTableDetail',
+    method: 'post',
+    data
+  })
+}
+
+export function saveJdbcConfig(data) {
+  return request({
+    url: '/generator/saveJdbcConfig',
+    method: 'post',
+    data
+  })
+}
+
+export function getJdbcConfig(data) {
+  return request({
+    url: '/generator/getJdbcConfig',
+    method: 'post',
+    data
+  })
+}

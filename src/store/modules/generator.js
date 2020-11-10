@@ -1,4 +1,4 @@
-import { getConfigData, downLoadTemplate, getTables, generatorCode } from '@/api/generator/generator'
+import { getConfigData, downLoadTemplate, getTables, generatorCode, getTableDetail, getJdbcConfig, saveJdbcConfig } from '@/api/generator/generator'
 
 const state = {
 }
@@ -36,9 +36,39 @@ const actions = {
     })
   },
 
-  generatorCode({ commit }, tableName) {
+  generatorCode({ commit }, params) {
     return new Promise((resolve, reject) => {
-      generatorCode({'tableName':tableName}).then(response => {
+      generatorCode(params).then(response => {
+        resolve(response)
+      }).catch(error => {
+        reject(error)
+      })
+    })
+  },
+
+  getTableDetail({ commit }, params) {
+    return new Promise((resolve, reject) => {
+      getTableDetail(params).then(response => {
+        resolve(response)
+      }).catch(error => {
+        reject(error)
+      })
+    })
+  },
+
+  getJdbcConfig({ commit }, params) {
+    return new Promise((resolve, reject) => {
+      getJdbcConfig(params).then(response => {
+        resolve(response)
+      }).catch(error => {
+        reject(error)
+      })
+    })
+  },
+
+  saveJdbcConfig({ commit }, params) {
+    return new Promise((resolve, reject) => {
+      saveJdbcConfig(params).then(response => {
         resolve(response)
       }).catch(error => {
         reject(error)

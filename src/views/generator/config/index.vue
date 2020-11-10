@@ -9,6 +9,13 @@
       <el-button v-else class="filter-item" style="margin-left: 10px;" type="primary" icon="el-icon-edit" @click="modifyFile()">
         修改模板
       </el-button>
+      name：<el-input v-model="name"  style="width: 300px;" class="filter-item" />
+      url：<el-input v-model="url"  style="width: 300px;" class="filter-item" />
+      user：<el-input v-model="user"  style="width: 300px;" class="filter-item" />
+      password：<el-input v-model="password"  style="width: 300px;" class="filter-item" />
+      <el-button class="filter-item" style="margin-left: 10px;" type="primary" icon="el-icon-edit" @click="saveJdbcConfig()">
+        保存配置
+      </el-button>
     </div>
 
     <el-table
@@ -58,7 +65,12 @@ export default {
       listLoading: true,
       loading : false,
       fileName : '',
-      existFile : false
+      existFile : false,
+
+      name:'',
+      url:'',
+      user:'',
+      password:''
     }
   },
   created() {
@@ -72,7 +84,15 @@ export default {
           this.listLoading = false;
       }).catch(() => {
           this.listLoading = true
-      })
+      });
+
+        this.$store.dispatch('generator/getJdbcConfig').then((data) => {
+          this.name = data.data.jdbcName;
+          this.url = data.data.jdbcUrl;
+          this.user = data.data.jdbcUser;
+          this.password = data.data.jdbcPassword;
+        }).catch(() => {
+        });
     },
       // 下载模板
     downLoad(fileName) {
@@ -159,6 +179,23 @@ export default {
                 })
             }
         });
+    },
+    saveJdbcConfig() {
+      let message = this.$message;
+      let params = {
+          jdbcName : this.name,
+          jdbcUrl : this.url,
+          jdbcUser : this.user,
+          jdbcPassword : this.password
+      }
+      this.$store.dispatch('generator/saveJdbcConfig', params).then((data) => {
+          message({
+              message: '保存成功',
+              type: 'success'
+          })
+      }).catch(() => {
+
+      });
     }
   }
 }
